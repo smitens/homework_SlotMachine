@@ -10,12 +10,12 @@ function getSymbols(): array
     ];
 }
 
-function createBoard($size): array
+function createBoard($rowSize, $columnSize): array
 {
     $board = [];
-    for ($row = 0; $row < $size; $row++) {
+    for ($row = 0; $row < $rowSize; $row++) {
         $currentRow = [];
-        for ($column = 0; $column < $size; $column++) {
+        for ($column = 0; $column < $columnSize; $column++) {
             $currentRow[] = array_rand(getSymbols());
         }
         $board[] = $currentRow;
@@ -106,6 +106,7 @@ function displayBoard($board, $winningCombinations, $payout)
 
 function playSlotMachine()
 {
+    $allSpinsPayout = 0;
     while (true) {
         $money = intval(readline("1 spin = 2 EUR\n Enter amount of money you want to play with: \n"));
         if ($money < 1) {
@@ -117,9 +118,10 @@ function playSlotMachine()
             echo "You have entered invalid value! Please enter value that is more than 1.\n";
             continue;
         }
-        $boardSize = intval(readline("Enter the size of the play board (for example 3 for a 3x3 board): \n"));
-        if ($boardSize < 1) {
-            echo "You have entered invalid value! Please enter value that is more than 1.\n";
+        $boardSize = readline("Enter the size of the board (rows, columns, for example 3, 4 = 3X4 board): \n");
+        list($boardRows, $boardColumns) = explode(',', $boardSize);
+        if (!ctype_digit($boardRows) || !ctype_digit($boardColumns) || $boardRows <= 1 || $boardColumns <= 1) {
+            echo "Invalid input. Please enter positive integers for rowSize and columnSize.\n";
             continue;
         }
         $winCondition = intval(readline("Enter the number of consequent symbols needed for a win (for example 3): \n"));
@@ -130,21 +132,25 @@ function playSlotMachine()
         $availableSpins = $money / 2;
         $betCoefficient = $bet / 2;
         while ($availableSpins > 0) {
-            $board = createBoard($boardSize);
+            $board = createBoard($boardRows, $boardColumns);
             $winningCombinations = checkWin($board, $winCondition);
             $payout = calculatePayout($winningCombinations, $betCoefficient);
             displayBoard($board, $winningCombinations, $payout);
             $availableSpins--;
+            $allSpinsPayout += $payout;
             if ($availableSpins > 0) {
                 readline("Press Enter to spin again!");
             }
         }
+        echo "Total Payout for all spins: EUR " . $allSpinsPayout . "\n";
+
         echo "Your spins are over!\n";
         $playAgain = readline("Do you want to play again? (yes/no): ");
-        if (strtolower($playAgain) !== 'yes') {
+        if (strtolower($playAgain) == 'yes') {
+            $allSpinsPayout = 0;
+        } else {
             break;
         }
     }
 }
-
 playSlotMachine();# homework_SlotMachine
